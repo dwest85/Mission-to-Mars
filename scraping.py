@@ -13,13 +13,31 @@ def scrape_all():
 
     news_title, news_paragraph = mars_news(browser)
 
+    url = 'https://marshemispheres.com/'
+    browser.visit(url)
+
+    url_list = []
+    links = browser.find_by_css('a.product-item img')
+
+    for i in range(len(links)):
+            hemisphere = {}
+            browser.find_by_css('a.product-item img')[i].click()
+            sample_elem = browser.links.find_by_text('Sample').first
+            hemisphere['img_url'] = sample_elem['href']
+            hemisphere['title'] = browser.find_by_css('h2.title').text
+            url_list.append(hemisphere)
+            browser.back()
+
     # Run all scraping functions and store results in a dictionary
     data = {
         "news_title": news_title,
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
-        "last_modified": dt.datetime.now()
+        "last_modified": dt.datetime.now(),
+        "url_title": hemisphere['title'],
+        "url_string": hemisphere['img_url'],
+        "hemispheres": url_list
     }
 
     # Stop webdriver and return data
@@ -72,6 +90,28 @@ def featured_image(browser):
     try:
         # Find the relative image url
         img_url_rel = img_soup.find('img', class_='fancybox-image').get('src')
+
+        executable_path = {'executable_path': ChromeDriverManager().install()}
+        browser = Browser('chrome', **executable_path, headless=True)
+        
+        url = 'https://galaxyfacts-mars.com'
+        browser.visit(url)
+        
+        df = pd.read_html(url)
+        
+        url_list = []
+        links = browser.find_by_css('a.product-item img')
+
+        for i in range(len(links)):
+            hemisphere = {}
+            browser.find_by_css('a.product-item img')[i].click()
+            sample_elem = browser.links.find_by_text('Sample').first
+            hemisphere['img_url'] = sample_elem['href']
+            hemisphere['title'] = browser.find_by_css('h2.title').text
+            url_list.append(hemisphere)
+            browser.back()
+
+            return hemisphere
 
     except AttributeError:
         return None
